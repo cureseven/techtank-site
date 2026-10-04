@@ -1,31 +1,34 @@
 ﻿import Image from "next/image";
-import { cn, cva } from "@/utils/theme";
+import { cn, cva, type VariantProps } from "@/utils/theme";
 
-const textVariants = cva("", {
-  variants: {
-    size: {
-      sm: "text-xs",
-      md: "text-base",
-      lg: "text-2xl",
-      xl: "text-3xl",
+const styles = {
+  root: cva("shrink-0 rounded-full", {
+    variants: {
+      size: {
+        sm: "size-10",
+        md: "size-14 ring-2",
+        lg: "shadow-soft size-24 ring-4",
+        xl: "shadow-soft size-40 ring-4",
+      },
+      hasImage: {
+        true: "relative overflow-hidden",
+        false: "flex items-center justify-center",
+      },
     },
-  },
-});
-
-const teamAvatarVariants = cva("", {
-  variants: {
-    size: {
-      sm: "size-10",
-      md: "size-14 ring ring-2",
-      lg: "shadow-soft size-24 ring ring-4",
-      xl: "shadow-soft size-40 ring-4",
+    defaultVariants: { size: "md", hasImage: false },
+  }),
+  initials: cva("font-display font-bold", {
+    variants: {
+      size: {
+        sm: "text-xs",
+        md: "text-base",
+        lg: "text-2xl",
+        xl: "text-3xl",
+      },
     },
-    avatar: {
-      true: "relative shrink-0 overflow-hidden rounded-full",
-      false: "flex shrink-0 items-center justify-center rounded-full",
-    },
-  },
-});
+    defaultVariants: { size: "md" },
+  }),
+};
 
 const AVATAR_PALETTES = [
   { bg: "bg-teal/15 dark:bg-teal/20", text: "text-teal dark:text-seafoam", ring: "ring-teal/20" },
@@ -50,14 +53,7 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-const sizeClasses = {
-  sm: { box: "h-10 w-10", text: "text-xs", ring: "" },
-  md: { box: "h-14 w-14", text: "text-base", ring: "ring-2" },
-  lg: { box: "h-24 w-24", text: "text-2xl", ring: "ring-4 shadow-soft" },
-  xl: { box: "h-40 w-40", text: "text-3xl", ring: "ring-4 shadow-soft" },
-} as const;
-
-type TeamAvatarSize = keyof typeof sizeClasses;
+type TeamAvatarSize = NonNullable<VariantProps<typeof styles.root>["size"]>;
 
 interface TeamAvatarProps {
   name: string;
@@ -68,10 +64,12 @@ interface TeamAvatarProps {
 
 export function TeamAvatar({ name, avatar, size = "md", className }: TeamAvatarProps) {
   const p = paletteFor(name);
+  // The sm avatar carries no ring, so it takes no ring colour either.
+  const ring = size === "sm" ? undefined : p.ring;
 
   if (avatar) {
     return (
-      <div className={cn(className, teamAvatarVariants({ size: size, avatar: true }), textVariants({ size: size }))}>
+      <div className={cn(styles.root({ size, hasImage: true }), ring, className)}>
         <Image
           src={avatar}
           alt={name}
@@ -84,10 +82,8 @@ export function TeamAvatar({ name, avatar, size = "md", className }: TeamAvatarP
   }
 
   return (
-    <div
-      className={cn(teamAvatarVariants({ size: size, avatar: false }), textVariants({ size: size }), p.bg, className)}
-    >
-      <span className={cn("font-display font-bold", textVariants({ size: size }), p.text)}>{initials(name)}</span>
+    <div className={cn(styles.root({ size, hasImage: false }), ring, p.bg, className)}>
+      <span className={cn(styles.initials({ size }), p.text)}>{initials(name)}</span>
     </div>
   );
 }
