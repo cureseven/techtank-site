@@ -55,6 +55,14 @@ function initials(name: string) {
 
 type TeamAvatarSize = NonNullable<VariantProps<typeof styles.root>["size"]>;
 
+/** Rendered width of each size, for `next/image` to pick the right source. */
+const IMAGE_SIZES = {
+  sm: "40px",
+  md: "56px",
+  lg: "96px",
+  xl: "160px",
+} as const satisfies Record<TeamAvatarSize, string>;
+
 interface TeamAvatarProps {
   name: string;
   avatar?: string;
@@ -70,13 +78,7 @@ export function TeamAvatar({ name, avatar, size = "md", className }: TeamAvatarP
   if (avatar) {
     return (
       <div className={cn(styles.root({ size, hasImage: true }), ring, className)}>
-        <Image
-          src={avatar}
-          alt={name}
-          fill
-          sizes={size === "xl" ? "160px" : size === "lg" ? "96px" : size === "md" ? "56px" : "40px"}
-          className="object-cover"
-        />
+        <Image src={avatar} alt={name} fill sizes={IMAGE_SIZES[size]} className="object-cover" />
       </div>
     );
   }
